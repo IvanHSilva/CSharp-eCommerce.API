@@ -1,13 +1,10 @@
 ﻿using eCommerce.API.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.API.Repositories {
     public class UserRepository : IUserRepository {
-        
+
         private List<User> _dbUsers = new List<User>() {
             new User(1, "José Rodrigues", "jrodrigues@gmail.com"),
             new User(2, "Maria Teresa", "marite@gmail.com"),
