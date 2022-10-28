@@ -25,22 +25,23 @@ namespace eCommerce.API.Repositories {
             List<User> users = new List<User>();
             try {
                 SqlCommand command = new SqlCommand();
-                command.CommandText = "SELECT * FROM Users";
+                command.CommandText = "SELECT * FROM Usuarios";
                 command.Connection = (SqlConnection)_connection;
                 _connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
+                //Dapper, EF, NHibernate (ORM)
                 while (reader.Read()) {
                     User user = new User();
                     //user.Id = (int)reader["Id"];
                     user.Id = reader.GetInt32("Id");
-                    user.Name = reader.GetString("Name");
-                    user.EMail = reader.GetString("EMail");
-                    user.Gender = reader.GetString("Gender");
+                    user.Name = reader.GetString("Nome");
+                    user.EMail = reader.GetString("Email");
+                    user.Gender = reader.GetString("Sexo");
                     user.RG= reader.GetString("RG");
                     user.CPF = reader.GetString("CPF");
-                    user.Filiation = reader.GetString("Filiation");
-                    user.Situation = reader.GetString("Situation");
-                    user.RegDate = reader.GetDateTime("RegDate");
+                    user.Filiation = reader.GetString("Filiacao");
+                    user.Situation = reader.GetString("Situacao");
+                    user.RegDate = reader.GetDateTime("DataCad");
                     users.Add(user);
                 }
             } catch (Exception e) {
