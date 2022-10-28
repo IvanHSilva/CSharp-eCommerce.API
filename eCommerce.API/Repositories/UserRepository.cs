@@ -23,7 +23,7 @@ namespace eCommerce.API.Repositories {
 
         public void InsertUser(User user) {
             User lastId = _dbUsers.LastOrDefault();
-            if (lastId == null) user.Id = 1; else user.Id++;
+            if (lastId == null) user.Id = 1; else user.Id = 2;
             _dbUsers.Add(user);
         }
 
