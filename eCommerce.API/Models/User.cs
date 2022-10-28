@@ -17,6 +17,8 @@ namespace eCommerce.API.Models {
         public ICollection<Address> Addresses { get; set; }
         public ICollection<Department> Departments{ get; set; }
 
+        public User() {}
+
         public User(int id, string name, string eMail) {
             Id = id;
             Name = name;
