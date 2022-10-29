@@ -53,7 +53,33 @@ namespace eCommerce.API.Repositories {
         }
 
         public User GetUser(int id) {
-            return _dbUsers.FirstOrDefault(u => u.Id == id);
+            try {
+                SqlCommand command = new SqlCommand();
+                command.CommandText = "SELECT * FROM Usuarios WHERE Id = @Id";
+                command.Parameters.AddWithValue("@Id", id);
+                command.Connection = (SqlConnection)_connection;
+                _connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read()) {
+                    User user = new User();
+                    user.Id = reader.GetInt32("Id");
+                    user.Name = reader.GetString("Nome");
+                    user.EMail = reader.GetString("Email");
+                    user.Gender = reader.GetString("Sexo");
+                    user.RG = reader.GetString("RG");
+                    user.CPF = reader.GetString("CPF");
+                    user.Filiation = reader.GetString("Filiacao");
+                    user.Situation = reader.GetString("Situacao");
+                    user.RegDate = reader.GetDateTime("DataCad");
+                    return user;
+                }
+            } catch (Exception e) {
+                string error = e.Message;
+            } finally {
+                _connection.Close();
+            }
+            return null;
         }
 
         public void InsertUser(User user) {
