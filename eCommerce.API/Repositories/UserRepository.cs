@@ -87,6 +87,7 @@ namespace eCommerce.API.Repositories {
                 SqlCommand command = new SqlCommand();
                 command.CommandText = "INSERT INTO Usuarios (Nome, EMail, Sexo, RG, CPF, Filiacao, Situacao, DataCad) ";
                 command.CommandText += "VALUES (@Nome, @EMail, @Sexo, @RG, @CPF, @Filiacao, @Situacao, @DataCad);";
+                command.CommandText += "SELECT CAST(scope_identity() AS int";
                 command.Connection = (SqlConnection)_connection;
                 command.Parameters.AddWithValue("@Nome", user.Name);
                 command.Parameters.AddWithValue("@EMail", user.EMail);
@@ -97,7 +98,7 @@ namespace eCommerce.API.Repositories {
                 command.Parameters.AddWithValue("@Situacao", user.Situation);
                 command.Parameters.AddWithValue("@DataCad", user.RegDate);
                 _connection.Open();
-                command.ExecuteNonQuery();
+                user.Id = (int)command.ExecuteScalar();
             } catch (Exception e) {
                 string error = e.Message;
             } finally {
