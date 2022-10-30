@@ -83,9 +83,26 @@ namespace eCommerce.API.Repositories {
         }
 
         public void InsertUser(User user) {
-            User lastId = _dbUsers.LastOrDefault();
-            if (lastId == null) user.Id = 1; else user.Id = 2;
-            _dbUsers.Add(user);
+            try {
+                SqlCommand command = new SqlCommand();
+                command.CommandText = "INSERT INTO Usuarios (Nome, EMail, Sexo, RG, CPF, Filiacao, Situacao, DataCad) ";
+                command.CommandText += "VALUES (@Nome, @EMail, @Sexo, @RG, @CPF, @Filiacao, @Situacao, @DataCad);";
+                command.Connection = (SqlConnection)_connection;
+                command.Parameters.AddWithValue("@Nome", user.Name);
+                command.Parameters.AddWithValue("@EMail", user.EMail);
+                command.Parameters.AddWithValue("@Sexo", user.Gender);
+                command.Parameters.AddWithValue("@RG", user.RG);
+                command.Parameters.AddWithValue("@CPF", user.CPF);
+                command.Parameters.AddWithValue("@Filiacao", user.Filiation);
+                command.Parameters.AddWithValue("@Situacao", user.Situation);
+                command.Parameters.AddWithValue("@DataCad", user.RegDate);
+                _connection.Open();
+                command.ExecuteNonQuery();
+            } catch (Exception e) {
+                string error = e.Message;
+            } finally {
+                _connection.Close();
+            }
         }
 
         public void UpdateUser(User user) {
