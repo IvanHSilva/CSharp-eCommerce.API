@@ -107,8 +107,27 @@ namespace eCommerce.API.Repositories {
         }
 
         public void UpdateUser(User user) {
-            _dbUsers.Remove(_dbUsers.FirstOrDefault(u => u.Id == user.Id));
-            _dbUsers.Add(user);
+            try {
+                SqlCommand command = new SqlCommand();
+                command.CommandText = "UPDATE Usuarios SET Nome = @Nome, EMail = @EMail, Sexo = @Sexo, RG = @RG, CPF = @CPF, ";
+                command.CommandText += "Filiacao = @Filiacao, Situacao = @Situacao, DataCad = @DataCad WHERE Id = @Id";
+                command.Connection = (SqlConnection)_connection;
+                command.Parameters.AddWithValue("@Nome", user.Name);
+                command.Parameters.AddWithValue("@EMail", user.EMail);
+                command.Parameters.AddWithValue("@Sexo", user.Gender);
+                command.Parameters.AddWithValue("@RG", user.RG);
+                command.Parameters.AddWithValue("@CPF", user.CPF);
+                command.Parameters.AddWithValue("@Filiacao", user.Filiation);
+                command.Parameters.AddWithValue("@Situacao", user.Situation);
+                command.Parameters.AddWithValue("@DataCad", user.RegDate);
+                command.Parameters.AddWithValue("@Id", user.Id);
+                _connection.Open();
+                command.ExecuteNonQuery();
+            } catch (Exception e) {
+                string error = e.Message;
+            } finally {
+                _connection.Close();
+            }
         }
 
         public void DeleteUser(int id) {
