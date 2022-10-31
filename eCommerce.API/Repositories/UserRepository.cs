@@ -55,7 +55,9 @@ namespace eCommerce.API.Repositories {
         public User GetUser(int id) {
             try {
                 SqlCommand command = new SqlCommand();
-                command.CommandText = "SELECT * FROM Usuarios WHERE Id = @Id";
+                command.CommandText = $"SELECT *, c.Id ContId FROM Usuarios u ";
+                command.CommandText += "LEFT JOIN Contatos c ON c.UsuId = u.Id ";
+                command.CommandText += "WHERE u.Id = @Id";
                 command.Parameters.AddWithValue("@Id", id);
                 command.Connection = (SqlConnection)_connection;
                 _connection.Open();
@@ -72,6 +74,14 @@ namespace eCommerce.API.Repositories {
                     user.Filiation = reader.GetString("Filiacao");
                     user.Situation = reader.GetString("Situacao");
                     user.RegDate = reader.GetDateTime("DataCad");
+
+                    Contact contact = new Contact();
+                    contact.Id = reader.GetInt32("ContId");
+                    contact.UserId = user.Id;
+                    contact.Phone = reader.GetString("Telefone");
+                    contact.CellPhone = reader.GetString("Celular");
+                    user.Contact = contact;
+
                     return user;
                 }
             } catch (Exception e) {
@@ -87,7 +97,7 @@ namespace eCommerce.API.Repositories {
                 SqlCommand command = new SqlCommand();
                 command.CommandText = "INSERT INTO Usuarios (Nome, EMail, Sexo, RG, CPF, Filiacao, Situacao, DataCad) ";
                 command.CommandText += "VALUES (@Nome, @EMail, @Sexo, @RG, @CPF, @Filiacao, @Situacao, @DataCad);";
-                command.CommandText += "SELECT CAST(scope_identity() AS int";
+                command.CommandText += "SELECT CAST(scope_identity() AS int)";
                 command.Connection = (SqlConnection)_connection;
                 command.Parameters.AddWithValue("@Nome", user.Name);
                 command.Parameters.AddWithValue("@EMail", user.EMail);
@@ -131,15 +141,18 @@ namespace eCommerce.API.Repositories {
         }
 
         public void DeleteUser(int id) {
-            _dbUsers.Remove(_dbUsers.FirstOrDefault(u => u.Id == id));
+            try {
+                SqlCommand command = new SqlCommand();
+                command.CommandText = "DELETE FROM Usuarios WHERE Id = @Id";
+                command.Connection = (SqlConnection)_connection;
+                command.Parameters.AddWithValue("@Id", id);
+                _connection.Open();
+                command.ExecuteNonQuery();
+            } catch (Exception e) {
+                string error = e.Message;
+            } finally {
+                _connection.Close();
+            }
         }
-
-        private List<User> _dbUsers = new List<User>() {
-            new User(1, "José Rodrigues", "jrodrigues@gmail.com"),
-            new User(2, "Maria Teresa", "marite@gmail.com"),
-            new User(3, "Ronaldo Amaral", "roamaral@gmail.com"),
-            new User(4, "Ana Clarice Mendes", "anacmendes@gmail.com"),
-            new User(5, "Xavier Oliveria", "xaoliver@gmail.com"),
-        };
     }
 }

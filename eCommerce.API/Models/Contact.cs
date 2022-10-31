@@ -7,6 +7,8 @@
 
         public User User { get; set; }
 
+        public Contact() {}
+
         public Contact(int id, int userId, string phone, string cellPhone) {
             Id = id;
             UserId = userId;
