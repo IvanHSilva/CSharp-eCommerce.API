@@ -13,6 +13,8 @@
 
         public User User { get; set; }
 
+        public Address() {}
+
         public Address(int id, int userId, string description, string street, string number, string comp, string district, string city, string state, string zipCode) {
             Id = id;
             UserId = userId;

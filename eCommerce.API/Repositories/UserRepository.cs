@@ -37,7 +37,7 @@ namespace eCommerce.API.Repositories {
                     user.Name = reader.GetString("Nome");
                     user.EMail = reader.GetString("Email");
                     user.Gender = reader.GetString("Sexo");
-                    user.RG= reader.GetString("RG");
+                    user.RG = reader.GetString("RG");
                     user.CPF = reader.GetString("CPF");
                     user.Filiation = reader.GetString("Filiacao");
                     user.Situation = reader.GetString("Situacao");
@@ -55,35 +55,58 @@ namespace eCommerce.API.Repositories {
         public User GetUser(int id) {
             try {
                 SqlCommand command = new SqlCommand();
-                command.CommandText = $"SELECT *, c.Id ContId FROM Usuarios u ";
+                command.CommandText = $"SELECT *, c.Id ContId, e.Id EndId FROM Usuarios u ";
                 command.CommandText += "LEFT JOIN Contatos c ON c.UsuId = u.Id ";
+                command.CommandText += "LEFT JOIN Enderecos e ON e.UsuId = u.Id ";
                 command.CommandText += "WHERE u.Id = @Id";
                 command.Parameters.AddWithValue("@Id", id);
                 command.Connection = (SqlConnection)_connection;
                 _connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
 
+                Dictionary<int, User> users = new Dictionary<int, User>();
+
                 while (reader.Read()) {
                     User user = new User();
-                    user.Id = reader.GetInt32("Id");
-                    user.Name = reader.GetString("Nome");
-                    user.EMail = reader.GetString("Email");
-                    user.Gender = reader.GetString("Sexo");
-                    user.RG = reader.GetString("RG");
-                    user.CPF = reader.GetString("CPF");
-                    user.Filiation = reader.GetString("Filiacao");
-                    user.Situation = reader.GetString("Situacao");
-                    user.RegDate = reader.GetDateTime("DataCad");
+                    if (!(users.ContainsKey(reader.GetInt32("Id")))) {
+                        user.Id = reader.GetInt32("Id");
+                        user.Name = reader.GetString("Nome");
+                        user.EMail = reader.GetString("Email");
+                        user.Gender = reader.GetString("Sexo");
+                        user.RG = reader.GetString("RG");
+                        user.CPF = reader.GetString("CPF");
+                        user.Filiation = reader.GetString("Filiacao");
+                        user.Situation = reader.GetString("Situacao");
+                        user.RegDate = reader.GetDateTime("DataCad");
 
-                    Contact contact = new Contact();
-                    contact.Id = reader.GetInt32("ContId");
-                    contact.UserId = user.Id;
-                    contact.Phone = reader.GetString("Telefone");
-                    contact.CellPhone = reader.GetString("Celular");
-                    user.Contact = contact;
+                        Contact contact = new Contact();
+                        contact.Id = reader.GetInt32("ContId");
+                        contact.UserId = user.Id;
+                        contact.Phone = reader.GetString("Telefone");
+                        contact.CellPhone = reader.GetString("Celular");
+                        user.Contact = contact;
 
-                    return user;
+                        users.Add(user.Id, user);
+                    } else {
+                        user = users[reader.GetInt32("Id")];
+                    }
+                    
+                    Address address = new Address();
+                    address.Id = reader.GetInt32("EndId");
+                    address.UserId = user.Id;
+                    address.Description = reader.GetString("Descricao");
+                    address.Street = reader.GetString("Endereco");
+                    address.Number = reader.GetString("Numero");
+                    address.Comp = reader.GetString("Complemento");
+                    address.District = reader.GetString("Bairro");
+                    address.City = reader.GetString("Cidade");
+                    address.State = reader.GetString("Estado");
+                    address.ZipCode = reader.GetString("CEP");
+                    
+                    user.Addresses = (user.Addresses == null) ? new List<Address>() : user.Addresses;
+                    user.Addresses.Add(address);
                 }
+                return users[users.Keys.First()];
             } catch (Exception e) {
                 string error = e.Message;
             } finally {
