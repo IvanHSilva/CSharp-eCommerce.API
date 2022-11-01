@@ -55,9 +55,11 @@ namespace eCommerce.API.Repositories {
         public User GetUser(int id) {
             try {
                 SqlCommand command = new SqlCommand();
-                command.CommandText = $"SELECT *, c.Id ContId, e.Id EndId FROM Usuarios u ";
+                command.CommandText = $"SELECT *, c.Id ContId, e.Id EndId, ud.Id UDId, d.Id DepId, d.Nome DepNome FROM Usuarios u ";
                 command.CommandText += "LEFT JOIN Contatos c ON c.UsuId = u.Id ";
                 command.CommandText += "LEFT JOIN Enderecos e ON e.UsuId = u.Id ";
+                command.CommandText += "LEFT JOIN UsuDeptos ud ON ud.UsuId = u.Id ";
+                command.CommandText += "LEFT JOIN Departamentos d ON ud.DeptoId = d.Id ";
                 command.CommandText += "WHERE u.Id = @Id";
                 command.Parameters.AddWithValue("@Id", id);
                 command.Connection = (SqlConnection)_connection;
@@ -104,11 +106,23 @@ namespace eCommerce.API.Repositories {
                     address.ZipCode = reader.GetString("CEP");
                     
                     user.Addresses = (user.Addresses == null) ? new List<Address>() : user.Addresses;
-                    user.Addresses.Add(address);
+                    if (user.Addresses.FirstOrDefault(a => a.Id == address.Id) == null) {
+                        user.Addresses.Add(address);
+                    }
+
+                    Department department = new Department();
+                    department.Id = reader.GetInt32("DepId");
+                    department.Name = reader.GetString("DepNome");
+
+                    user.Departments = (user.Departments == null) ? new List<Department>() : user.Departments;
+                    if (user.Departments.FirstOrDefault(d => d.Id == department.Id) == null) {
+                        user.Departments.Add(department);
+                    }
                 }
                 return users[users.Keys.First()];
             } catch (Exception e) {
                 string error = e.Message;
+                return null;
             } finally {
                 _connection.Close();
             }

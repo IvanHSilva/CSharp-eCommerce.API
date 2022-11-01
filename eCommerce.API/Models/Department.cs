@@ -7,6 +7,8 @@ namespace eCommerce.API.Models {
 
         public ICollection<User> Users { get; set; }
 
+        public Department() {}
+
         public Department(int id, string name) {
             Id = id;
             Name = name;
