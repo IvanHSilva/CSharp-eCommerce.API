@@ -144,8 +144,19 @@ namespace eCommerce.API.Repositories {
                 command.Parameters.AddWithValue("@Filiacao", user.Filiation);
                 command.Parameters.AddWithValue("@Situacao", user.Situation);
                 command.Parameters.AddWithValue("@DataCad", user.RegDate);
+                
                 _connection.Open();
                 user.Id = (int)command.ExecuteScalar();
+
+                command.CommandText = "INSERT INTO Contatos (UsuId, Telefone, Celular) VALUES (@UsuId, @Telefone, @Celular); ";
+                command.CommandText += "SELECT CAST(scope_identity() AS int)";
+                command.Parameters.AddWithValue("@UsuId", user.Id);
+                command.Parameters.AddWithValue("@Telefone", user.Contact.Phone);
+                command.Parameters.AddWithValue("@Celular", user.Contact.CellPhone);
+                
+                user.Contact.UserId = user.Id;
+                user.Contact.Id = (int)command.ExecuteScalar();
+
             } catch (Exception e) {
                 string error = e.Message;
             } finally {
