@@ -1,6 +1,7 @@
 ﻿using eCommerce.API.Models;
 using eCommerce.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace eCommerce.API.Controllers {
     [Route("api/[controller]")]
@@ -27,8 +28,12 @@ namespace eCommerce.API.Controllers {
 
         [HttpPost]
         public IActionResult Insert([FromBody]User user) {
-            _repository.InsertUser(user);
-            return Ok(user);
+            try {
+                _repository.InsertUser(user);
+                return Ok(user);
+            } catch (Exception e) {
+                return StatusCode(500, e.Message);
+            }
         }
 
         [HttpPut]

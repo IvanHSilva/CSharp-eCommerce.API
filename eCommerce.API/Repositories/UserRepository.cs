@@ -131,8 +131,13 @@ namespace eCommerce.API.Repositories {
         }
 
         public void InsertUser(User user) {
-            try {
+            
+            _connection.Open();
+            SqlTransaction transaction = (SqlTransaction)_connection.BeginTransaction();
+            
+                try {
                 SqlCommand command = new SqlCommand();
+                command.Transaction = transaction;
                 command.Connection = (SqlConnection)_connection;
                 
                 command.CommandText = "INSERT INTO Usuarios (Nome, EMail, Sexo, RG, CPF, Filiacao, Situacao, DataCad) ";
@@ -148,7 +153,6 @@ namespace eCommerce.API.Repositories {
                 command.Parameters.AddWithValue("@Situacao", user.Situation);
                 command.Parameters.AddWithValue("@DataCad", user.RegDate);
                 
-                _connection.Open();
                 user.Id = (int)command.ExecuteScalar();
 
                 command.CommandText = "INSERT INTO Contatos (UsuId, Telefone, Celular) VALUES (@UsuId, @Telefone, @Celular); ";
@@ -162,6 +166,7 @@ namespace eCommerce.API.Repositories {
 
                 foreach(Address address in user.Addresses) {
                     command = new SqlCommand();
+                    command.Transaction = transaction; 
                     command.Connection = (SqlConnection)_connection;
 
                     command.CommandText = "INSERT INTO Enderecos (UsuId, Descricao, Endereco, Numero, Complemento, Bairro, Cidade, Estado, CEP) ";
@@ -184,19 +189,25 @@ namespace eCommerce.API.Repositories {
 
                 foreach (Department department in user.Departments) {
                     command = new SqlCommand();
+                    command.Transaction = transaction; 
                     command.Connection = (SqlConnection)_connection;
 
                     command.CommandText = "INSERT INTO UsuDeptos (UsuId, DeptoId) VALUES (@UsuId, @DeptoId); ";
-                    //command.CommandText += "SELECT CAST(scope_identity() AS int)";
 
                     command.Parameters.AddWithValue("@UsuId", user.Id);
                     command.Parameters.AddWithValue("@DeptoId", department.Id);
 
-                    //department.Id = (int)command.ExecuteScalar();
                     command.ExecuteNonQuery();
                 }
+                transaction.Commit();
             } catch (Exception e) {
                 string error = e.Message;
+                try {
+                    transaction.Rollback();
+                } catch (Exception ex) {
+                    error = ex.Message;
+                }
+                throw new Exception("Erro ao inserir os dados, operação cancelada!");
             } finally {
                 _connection.Close();
             }
