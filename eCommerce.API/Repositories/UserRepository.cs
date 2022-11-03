@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 
 /* ADO Objects
  * Connection -> Faz a conexão com o banco
@@ -132,10 +133,12 @@ namespace eCommerce.API.Repositories {
         public void InsertUser(User user) {
             try {
                 SqlCommand command = new SqlCommand();
+                command.Connection = (SqlConnection)_connection;
+                
                 command.CommandText = "INSERT INTO Usuarios (Nome, EMail, Sexo, RG, CPF, Filiacao, Situacao, DataCad) ";
                 command.CommandText += "VALUES (@Nome, @EMail, @Sexo, @RG, @CPF, @Filiacao, @Situacao, @DataCad);";
                 command.CommandText += "SELECT CAST(scope_identity() AS int)";
-                command.Connection = (SqlConnection)_connection;
+                
                 command.Parameters.AddWithValue("@Nome", user.Name);
                 command.Parameters.AddWithValue("@EMail", user.EMail);
                 command.Parameters.AddWithValue("@Sexo", user.Gender);
@@ -157,6 +160,41 @@ namespace eCommerce.API.Repositories {
                 user.Contact.UserId = user.Id;
                 user.Contact.Id = (int)command.ExecuteScalar();
 
+                foreach(Address address in user.Addresses) {
+                    command = new SqlCommand();
+                    command.Connection = (SqlConnection)_connection;
+
+                    command.CommandText = "INSERT INTO Enderecos (UsuId, Descricao, Endereco, Numero, Complemento, Bairro, Cidade, Estado, CEP) ";
+                    command.CommandText += "VALUES (@UsuId, @Descricao, @Endereco, @Numero, @Complemento, @Bairro, @Cidade, @Estado, @CEP); ";
+                    command.CommandText += "SELECT CAST(scope_identity() AS int)";
+
+                    command.Parameters.AddWithValue("@UsuId", user.Id); 
+                    command.Parameters.AddWithValue("@Descricao", address.Description);
+                    command.Parameters.AddWithValue("@Endereco", address.Street);
+                    command.Parameters.AddWithValue("@Numero", address.Number);
+                    command.Parameters.AddWithValue("@Complemento", address.Comp);
+                    command.Parameters.AddWithValue("@Bairro", address.District);
+                    command.Parameters.AddWithValue("@Cidade", address.City);
+                    command.Parameters.AddWithValue("@Estado", address.State);
+                    command.Parameters.AddWithValue("@CEP", address.ZipCode);
+
+                    address.Id = (int)command.ExecuteScalar(); 
+                    address.UserId = user.Id;
+                }
+
+                foreach (Department department in user.Departments) {
+                    command = new SqlCommand();
+                    command.Connection = (SqlConnection)_connection;
+
+                    command.CommandText = "INSERT INTO UsuDeptos (UsuId, DeptoId) VALUES (@UsuId, @DeptoId); ";
+                    //command.CommandText += "SELECT CAST(scope_identity() AS int)";
+
+                    command.Parameters.AddWithValue("@UsuId", user.Id);
+                    command.Parameters.AddWithValue("@DeptoId", department.Id);
+
+                    //department.Id = (int)command.ExecuteScalar();
+                    command.ExecuteNonQuery();
+                }
             } catch (Exception e) {
                 string error = e.Message;
             } finally {
